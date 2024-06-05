@@ -108,7 +108,8 @@ def process_report(report_file_name):
     }
     for shared_object_name in records:
         report['summary']['file counts'][shared_object_name] = len(records[shared_object_name])
-    print(json.dumps(report, indent=4, sort_keys=True))
+    with open("report.json", "w") as reportJson:
+        reportJson.write(json.dumps(report, indent=4, sort_keys=True))
 
     if sorted(set(source_files_index)) != sorted(set(source_files_annotations)):
         print('Error: index doesn\'t match annotation sections:')
