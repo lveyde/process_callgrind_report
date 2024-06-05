@@ -14,7 +14,7 @@ def process_report(report_file_name):
     files = dict()
     source_files_index = []
     source_files_annotations = []
-    print(report_file_name)
+    print(f'Processing {report_file_name}...')
     with open(report_file_name) as file:
         counter = 0
         file_counter = 0
@@ -27,15 +27,10 @@ def process_report(report_file_name):
                 in_header = not in_header
                 if in_header:
                     counter = counter + 1
-                    # print(f'section header begin {counter}')
-                else:
-                    # print(f'section header end {counter}')
-                    pass
             else:
                 if in_header:
                     if line.startswith(FILE_FUNCTION_HEADER):
                         in_index_section = True
-                        print('file:function index')
                     elif line.startswith(AUTO_ANNOTATED_SOURCE):
                         in_annotation_section = True
                         in_index_section = False
@@ -56,12 +51,6 @@ def process_report(report_file_name):
                         files[shared_object_basename].write('-' * 80 + '\n')
                         files[shared_object_basename].write(AUTO_ANNOTATED_SOURCE + ' ' + source_filename + '\n')
                         files[shared_object_basename].write('-' * 80 + '\n')
-                        # if summarize_by_shared_object:
-                        # annotation_filename = '@'.join()
-                        # if annotation_file:
-                        #     annotation_file.close()
-                        # annotation_file = open("shared_object_specific_dir/")
-                        # print(f'file {file_counter}: {os.path.basename(shared_object_name)}:{source_filename}')
                     else:
                         in_annotation_section = False
                         in_index_section = False
@@ -88,13 +77,39 @@ def process_report(report_file_name):
                     elif in_annotation_section:
                         if len(line.lstrip()) > 0:
                             files[shared_object_basename].write(line.lstrip() + '\n')
-                        # print(f'{source_filename}: {line.lstrip()}')
 
     for file in files:
         files[file].close()
-    print(json.dumps(records, indent=4, sort_keys=True))
+    func_list = []
+    functions = {}
+    for dso in records:
+        for file in records[dso]:
+            for func in records[dso][file]:
+                func_list.append(func)
+                if func in functions:
+                    if not dso in functions[func].keys():
+                        functions[func][dso] = [file]
+                    else:
+                        functions[func][dso].append(file)
+                else:
+                    functions[func] = {dso: [file]}
+    report = {}
+    report['DSOs'] = records
+    report['functions'] = functions
+    report['summary'] = {
+        'section count': counter,
+        'index file count': len(source_files_index),
+        'index file count (unique)': len(set(source_files_index)),
+        'annotations file count': len(source_files_annotations), 
+        'annotations file count (unique)': len(set(source_files_annotations)),
+        'function count': len(func_list),
+        'function count (unique)': len(set(functions)), 
+        'file counts': {}
+    }
     for shared_object_name in records:
-        print(f'{shared_object_name}: {len(records[shared_object_name])} source code files.')
+        report['summary']['file counts'][shared_object_name] = len(records[shared_object_name])
+    print(json.dumps(report, indent=4, sort_keys=True))
+
     if sorted(set(source_files_index)) != sorted(set(source_files_annotations)):
         print('Error: index doesn\'t match annotation sections:')
         print(f'Indexed files ({len(set(source_files_index))}): {sorted(set(source_files_index))}')
