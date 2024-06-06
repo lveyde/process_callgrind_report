@@ -12,6 +12,8 @@ import os
 import pathlib
 import sys
 
+__version__ = "1.1.0"
+
 AUTO_ANNOTATED_SOURCE = "-- Auto-annotated source:"
 FILE_FUNCTION_HEADER = "Ir      file:function"
 
@@ -158,6 +160,12 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "filename", help="annotated callgrind report filename", type=pathlib.Path
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="%(prog)s {version}".format(version=__version__),
     )
     args = parser.parse_args()
     if len(sys.argv) < 2:
