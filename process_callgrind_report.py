@@ -92,10 +92,12 @@ def process_report(report_file_name):
     for file in files:
         files[file].close()
     func_list = []
+    func_count = {}
     functions = {}
     for dso in records:
         for file in records[dso]:
             for func in records[dso][file]:
+                print(func)
                 func_list.append(func)
                 if func in functions:
                     if not dso in functions[func].keys():
@@ -104,23 +106,31 @@ def process_report(report_file_name):
                         functions[func][dso].append(file)
                 else:
                     functions[func] = {dso: [file]}
+                if not dso in func_count:
+                    func_count[dso] = 0
+                func_count[dso] += 1
     report = {}
     report["DSOs"] = records
     report["functions"] = functions
-    report["summary"] = {
+    report["Statistics"] = {
         "section count": counter,
         "index file count": len(source_files_index),
         "index file count (unique)": len(set(source_files_index)),
         "annotations file count": len(source_files_annotations),
         "annotations file count (unique)": len(set(source_files_annotations)),
-        "function count": len(func_list),
-        "function count (unique)": len(set(functions)),
-        "file counts": {},
+        "total function count": len(func_list),
+        "total function count (unique)": len(set(functions)),
+        "file count": {},
+        "function count": {},
     }
     for shared_object_name in records:
-        report["summary"]["file counts"][shared_object_name] = len(
+        report["Statistics"]["file count"][shared_object_name] = len(
             records[shared_object_name]
         )
+        report["Statistics"]["function count"][shared_object_name] = func_count[
+            shared_object_name
+        ]
+
     with open("report.json", "w") as reportJson:
         reportJson.write(json.dumps(report, indent=4, sort_keys=True))
 
