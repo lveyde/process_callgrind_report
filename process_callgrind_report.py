@@ -119,7 +119,7 @@ def process_report(report_file_name):
     report = {}
     report["DSOs"] = records
     report["functions"] = functions
-    report["Statistics"] = {
+    report["statistics"] = {
         "section count": counter,
         "index file count": len(source_files_index),
         "index file count (unique)": len(set(source_files_index)),
@@ -131,10 +131,10 @@ def process_report(report_file_name):
         "function count": {},
     }
     for shared_object_name in records:
-        report["Statistics"]["file count"][shared_object_name] = len(
+        report["statistics"]["file count"][shared_object_name] = len(
             records[shared_object_name]
         )
-        report["Statistics"]["function count"][shared_object_name] = func_count[
+        report["statistics"]["function count"][shared_object_name] = func_count[
             shared_object_name
         ]
 
