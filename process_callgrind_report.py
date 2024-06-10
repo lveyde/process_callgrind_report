@@ -105,7 +105,6 @@ def process_report(report_file_name):
     for dso in records:
         for file in records[dso]:
             for func in records[dso][file]:
-                print(func)
                 func_list.append(func)
                 if func in functions:
                     if not dso in functions[func].keys():
