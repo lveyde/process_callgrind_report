@@ -12,7 +12,7 @@ import os
 import pathlib
 import sys
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 AUTO_ANNOTATED_SOURCE = "-- Auto-annotated source:"
 FILE_FUNCTION_HEADER = "Ir      file:function"
@@ -77,22 +77,26 @@ def process_report(report_file_name):
                         if len(record) > 3:
                             record[1] = record[1] + " " + record[2]
                             record[2] = record[3]
-                        file_func = os.path.abspath(record[1]).split(":")
-                        source_files_index.append(file_func[0])
+                        file_func_record = record[1].split(":")
+                        if file_func_record[0] == "???":
+                            print(f"Detected unresolved memory location: {file_func_record[1]}")
+                            continue
+                        file_func = os.path.abspath(file_func_record[0])
+                        source_files_index.append(file_func)
                         if len(record) > 2:
                             shared_object_name = record[2][1:-1]
                         else:
                             shared_object_name = "unknown"
                         if not shared_object_name in records.keys():
                             records[shared_object_name] = {}
-                        if not file_func[0] in records[shared_object_name].keys():
-                            records[shared_object_name][file_func[0]] = []
+                        if not file_func in records[shared_object_name].keys():
+                            records[shared_object_name][file_func] = []
                         if len(file_func) > 1:
-                            records[shared_object_name][file_func[0]].append(
-                                file_func[1]
+                            records[shared_object_name][file_func].append(
+                                file_func_record[1]
                             )
                         else:
-                            records[shared_object_name][file_func[0]].append("")
+                            records[shared_object_name][file_func].append("")
                     elif in_annotation_section:
                         if len(line.lstrip()) > 0:
                             files[shared_object_basename].write(line.lstrip() + "\n")
